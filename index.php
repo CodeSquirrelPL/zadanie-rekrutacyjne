@@ -11,10 +11,30 @@ class PhoneKeyboardConverter {
     public $string = '';
     public $numeric = '';
 
+    public $keypad = [
+        '2' => ['a', 'b', 'c'],
+        '3' => ['d', 'e', 'f'],
+        '4' => ['g', 'h', 'i'],
+        '5' => ['j', 'k', 'l'],
+        '6' => ['m', 'n', 'o'],
+        '7' => ['p', 'q', 'r', 's'],
+        '8' => ['t', 'u', 'v'],
+        '9' => ['w', 'x', 'y', 'z']
+    ];
+
+    function find($character) {
+        foreach($this->keypad as $index => $key) {
+            $pushes = array_search($character, $key);
+            if ($pushes) return [$index, $pushes + 1];
+        }
+        return false;
+    }
+
     function convertToNumeric($input) {
         $output = "";
         $input = str_split($input);
-         foreach ($input as $character) {
+        foreach ($input as $character) {
+            //znaki diakrytyczne - zamień na zwykłe; ->lowercase
              $charNumber = ord($character)-91;
              $keyNumber = intdiv($charNumber, 3);
              for ($i = 0; $i<$charNumber%3+1; $i++) {
@@ -28,16 +48,35 @@ class PhoneKeyboardConverter {
 
     function convertToString($input) {
         $output = "";
-        //split the string according to the ,
-
+        $numbers = explode(",", $input);
+        foreach ($numbers as $character) {
+            //czy wszystkie cyfry są takie same, czy są wyłącznie cyfry?, czy jest ich >0 i <4 -> error: incorrect input
+            $pushes = strlen($character);
+            $keyNumber = $character[0]; //można zrobić w walidacji
+            $charNumber = $keyNumber*3+90+$pushes;
+            //$output.=chr($charNumber);
+            //$output.=$charNumber;
+            //$output.=",";
+            $output=$output.'pushes: '.$pushes.' pressed key: '.$keyNumber.' character number: '.$charNumber.' character: '.chr($charNumber).'<br>';
+        }
         return $output;
+    }
+
+    function validateKeyNumber($KeyNumberArr) {
+        $keyNumber = array_values($KeyNumberArr);
+        if ($keyNumber) {
+            
+        } 
     }
 
 };
 
 
+
+
 $test = new PhoneKeyboardConverter();
-echo($test->convertToNumeric("cda"));
+//echo($test->convertToString("5,2,22,555,33,222,9999,66,444,55"));
+echo(implode(',', $test->find('ź')));
 ?>
 
 
