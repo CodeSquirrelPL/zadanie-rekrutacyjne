@@ -14,7 +14,8 @@ class PhoneKeyboardConverter {
         '6' => ['m', 'n', 'o'],
         '7' => ['p', 'q', 'r', 's'],
         '8' => ['t', 'u', 'v'],
-        '9' => ['w', 'x', 'y', 'z']
+        '9' => ['w', 'x', 'y', 'z'],
+        '0' => [' ']
     ];
 
     function whichKey($character) {
@@ -38,33 +39,28 @@ class PhoneKeyboardConverter {
         return $this->keypad[$pressedKey][$presses-1];
     }
 
-    function convertToNumeric($input) {
-        $output = "";
-        $inputLowercase = strtolower($input);
+    function convertToNumeric($inputString) {
+        //tylko litery i spacja
+        //[a-zA-Z␣]+
+        $inputLowercase = strtolower($inputString);
         $inputLowercaseArr = str_split($inputLowercase);
-        foreach ($inputLowercaseArr as $character) {
-            echo($this->whichKey($character));
-         }
-         return $output;
+        $convertedArr = array_map(('self::whichKey'), $inputLowercaseArr);
+        return implode(',', $convertedArr);
      }
 
 
-    function convertToString($input) {
-        $output = "";
-        $numbers = explode(",", $input);
-        foreach ($numbers as $keyPressed) {
-            $output.=$this->whichCharacter($keyPressed);
-        }
-        return $output;
+    function convertToString($inputNumeric) {
+        //cyfry i przecinek
+        $numbersArr = explode(",", $inputNumeric);
+        $convertedArr = array_map(('self::whichCharacter'), $numbersArr);
+        return implode($convertedArr);
     }
 };
 
 
-
-
 $test = new PhoneKeyboardConverter();
-//echo($test->convertToString("55,222"));
-$test->convertToNumeric('e');
+echo($test->convertToString("0,2,0,333"));
+//echo($test->convertToNumeric(' c'));
 ?>
 
 <html>
