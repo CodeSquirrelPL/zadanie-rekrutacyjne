@@ -1,4 +1,8 @@
 const polishGreetings = {
+    
+    calculateAge(birthYear) {
+        return new Date().getFullYear() - birthYear;
+    },
 
     president() {
         return 'Witaj, prezesie!';
@@ -14,24 +18,22 @@ const polishGreetings = {
 
     fired (username) {
         return `${username}, jesteś zwolniony!`;
-    }
+    },
+
+    welcomeUsers(users) {
+        users.forEach(element => {
+            var greeting = '';
+            if (element.salary>15000) 
+            console.log(this.president(element.username));
+            else if (element.salary<5000)
+            console.log(this.raise(element.username));
+            else greeting = element.birthYear%2 ? 
+            console.log(this.fired(element.username)) : 
+            console.log(this.usersAge(element.username, calculateAge(element.birthYear)));
+        });
+    },
 }
 
-function welcomeUsers(users) {
-    users.forEach(element => {
-        var greeting = '';
-        if (element.salary>15000) 
-        console.log(polishGreetings.president(element.username));
-        else if (element.salary<5000)
-        console.log(polishGreetings.raise(element.username));
-        else greeting = element.birthYear%2 ? 
-        console.log(polishGreetings.fired(element.username)) : console.log(polishGreetings.usersAge(element.username, calculateAge(element.birthYear)));
-    });
-}
-
-function calculateAge(birthYear) {
-    return new Date().getFullYear() - birthYear;
-}
 
 var usersArr = [
     {username: 'Jan Kowalski', birthYear: 1983, salary: 4200},

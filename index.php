@@ -41,16 +41,19 @@ class PhoneKeyboardConverter {
 
     function convertToNumeric($inputString) {
         //tylko litery i spacja
-        //[a-zA-Z␣]+
-        $inputLowercase = strtolower($inputString);
-        $inputLowercaseArr = str_split($inputLowercase);
-        $convertedArr = array_map(('self::whichKey'), $inputLowercaseArr);
-        return implode(',', $convertedArr);
+        // \A[a-zA-Z ]+\z
+        if (preg_match('/\A[a-zA-Z ]+\z/', $inputString)) {
+            $inputLowercase = strtolower($inputString);
+            $inputLowercaseArr = str_split($inputLowercase);
+            $convertedArr = array_map(('self::whichKey'), $inputLowercaseArr);
+            return implode(',', $convertedArr);
+        }   else return false;
      }
 
-
     function convertToString($inputNumeric) {
-        //cyfry i przecinek
+        //cyfry (0, 2-9) i przecinek; 1-4 razy
+        //0 - tylko raz, 2-6, 8 - 1-3 razy, 7 i 9 - 1-4 razy
+        //[]
         $numbersArr = explode(",", $inputNumeric);
         $convertedArr = array_map(('self::whichCharacter'), $numbersArr);
         return implode($convertedArr);
@@ -59,8 +62,8 @@ class PhoneKeyboardConverter {
 
 
 $test = new PhoneKeyboardConverter();
-echo($test->convertToString("0,2,0,333"));
-//echo($test->convertToNumeric(' c'));
+//echo($test->convertToString("0,2,0,333"));
+echo($test->convertToNumeric('ala ma kota z'));
 ?>
 
 <html>
