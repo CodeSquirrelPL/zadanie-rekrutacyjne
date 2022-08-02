@@ -1,12 +1,52 @@
-<!DOCTYPE html>
-<head>
-    <script src="index.js"></script>
-</head>
-
 <?php
-class PhoneKeyboardConverter {
 
-    public $keypad = [
+class PhoneKeyboardConverter
+{
+    public function convertToNumeric(string $inputString): string
+    {
+        // we only accept english letters and spaces
+        if (!preg_match('/^[a-zA-Z ]+$/', $inputString)) {
+            throw new Exception('Unsupported string');
+        }
+
+        $inputLowercase = strtolower($inputString);
+        $inputLowercaseArr = str_split($inputLowercase);
+        $convertedArr = array_map('self::characterToKey', $inputLowercaseArr);
+
+        return implode(',', $convertedArr);
+    }
+
+    public function convertToString(string $inputNumeric): string
+    {
+        if (!preg_match($this->numericValidationRegex, $inputNumeric)) {
+            throw new Exception('Unsupported string');
+        }
+        $numbersArr = explode(',', $inputNumeric);
+        $convertedArr = array_map(('self::keyToCharacter'), $numbersArr);
+
+        return implode($convertedArr);
+    }
+
+    private function characterToKey(string $character): string
+    {
+        foreach(self::KEYPAD as $key => $characters) {
+            $pressedTimes = array_search($character, $characters);
+            if ($pressedTimes !== false) {
+                return str_repeat($key, $pressedTimes + 1);
+            }
+        }
+
+        throw new \Exception('This should not happen');
+    }
+
+    private function keyToCharacter(string $key): string
+    {
+        $presses = strlen($key);
+        $pressedKey = $key[0];
+        return self::KEYPAD[$pressedKey][$presses - 1];
+    }
+
+    private const KEYPAD = [
         '2' => ['a', 'b', 'c'],
         '3' => ['d', 'e', 'f'],
         '4' => ['g', 'h', 'i'],
@@ -18,55 +58,36 @@ class PhoneKeyboardConverter {
         '0' => [' ']
     ];
 
-    function whichKey($character) {
-        foreach($this->keypad as $index => $key) {
-            $pressedTimes = array_search($character, $key);
-            if ($pressedTimes!==false) {
-                $output = "";
-                $pressedTimes+=1;
-                for ($i=0; $i<$pressedTimes; $i++) {
-                    $output.=$index;
-                }
-                return $output;
-            }
+    private string $numericValidationRegex;
+
+    public function __construct()
+    {
+        $this->numericValidationRegex = $this->buildNumericValidationRegex();
+    }
+
+    private function buildNumericValidationRegex()
+    {
+    /* the regex is build dynamically because of its complexicity:
+        - a section of the input string representing one character must contain only the same digit (it can be repeated)
+        - the sections have to be divided by a comma
+        - 1 is not accepted
+        - 0 cannot appear more than once in a section
+        - 7 and 9 can be repeated 1-4 times in a section
+        - 2-6 and 8 can be repeated 1-3 times in a section */
+        $digitRegex = [];
+        foreach(self::KEYPAD as $key => $characters) {
+            $digitRegex[] = sprintf('%s{1,%s}', $key, count($characters)); // eg. 2{1,3}
         }
-        return false;
+        $digitRegex = '(' . implode('|', $digitRegex) . ')';
+
+        return sprintf('/^(%s,)*%s$/', $digitRegex, $digitRegex);
     }
-
-    function whichCharacter($number) {
-        $presses = strlen($number);
-        $pressedKey = $number[0];
-        return $this->keypad[$pressedKey][$presses-1];
-    }
-
-    function convertToNumeric($inputString) {
-        //tylko litery i spacja
-        // \A[a-zA-Z ]+\z
-        if (preg_match('/\A[a-zA-Z ]+\z/', $inputString)) {
-            $inputLowercase = strtolower($inputString);
-            $inputLowercaseArr = str_split($inputLowercase);
-            $convertedArr = array_map(('self::whichKey'), $inputLowercaseArr);
-            return implode(',', $convertedArr);
-        }   else return false;
-     }
-
-    function convertToString($inputNumeric) {
-        //cyfry (0, 2-9) i przecinek; 1-4 razy
-        //0 - tylko raz, 2-6, 8 - 1-3 razy, 7 i 9 - 1-4 razy
-        //[]
-        $numbersArr = explode(",", $inputNumeric);
-        $convertedArr = array_map(('self::whichCharacter'), $numbersArr);
-        return implode($convertedArr);
-    }
-};
-
+}
 
 $test = new PhoneKeyboardConverter();
-//echo($test->convertToString("0,2,0,333"));
-echo($test->convertToNumeric('ala ma kota z'));
-?>
 
-<html>
-
-Klawiatury starych telefonów komórkowych były wyłącznie numeryczne. Aby napisać za ich pomocą tekst należało naciskać dany klawisz numeryczny odpowiednią ilość razy, na przykład „ULA” zapisywało się jako 885552 (dwa naciśnięcia klawisza 8, trzy naciśnięcia klawisza 5, jedno naciśnięcia klawisza 2). Stwórz klasę PhoneKeyboardConverter zawierającą metody: 1. convertToNumeric, umożliwiającą tłumaczenie łańcucha znaków na ciąg numeryczny zgodny z klawiaturą telefonu, kolejne „litery” oddzielone powinny być przecinkiem, 2. convertToString , umożliwiającą tłumaczenie ciągu numerycznego zgodnego z klawiaturą telefonu (gdzie kolejne „litery” oddzielone będą przecinkiem) na tekst.
-Metody powinny przyjmować jako wymagany parametr wejściowy ciąg znaków i zwracać przetłumaczony ciąg. Klasa może zawierać dowolne inne zmienne/metody, które zostały uznane za niezbędne bądź pomocne przy wykonaniu zadania.
+$result = $test->convertToNumeric('Ela nie ma kota');
+echo $test->convertToNumeric('Ela nie ma kota') . PHP_EOL;
+echo '33,555,2,0,66,444,33,0,6,2,0,55,666,8,2' . PHP_EOL;
+echo $test->convertToString('5,2,22,555,33,222,9999,66,444,55') . PHP_EOL;
+echo 'jablecznik' . PHP_EOL;
